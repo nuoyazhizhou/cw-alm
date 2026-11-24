@@ -28,7 +28,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 ## 前置条件
 
 - **出方案模式（R0-R3）**：无需 callwarden，落盘 `.design/<feature>/` 即可。
-- **建单闭环模式（R4-R5）**：需要 callwarden daemon 运行 + MCP 连接器已注册（工具按名后缀匹配 `task_create` / `get_active_workspace` / `task_next_step` / `task_report_step`），仓库已 `cw workspace register` 绑定、agent 已 `agent.register` 注册身份。门禁与建单格式见 `references/cw-gates.md`（安装时由 `../_shared/cw-gates.md` 注入，与 code-review-cw 共用同一份）。
+- **建单闭环模式（R4-R5）**：需要 callwarden daemon 运行 + MCP 连接器已注册（工具按名后缀匹配 `task_create` / `get_active_workspace` / `task_next_step` / `task_report_step`），仓库已 `cw workspace register` 绑定、agent 已 `agent.register` 注册身份。门禁与建单格式见 `references/cw-gates.md`（安装时由 `../../kernel/cw-gates.md` 注入，与 code-review-cw 共用同一份）。
 
 ## 两条链
 
@@ -46,7 +46,7 @@ references/
 DESIGN.md                    设计文档（v2.5，含 5 轮评审修订日志、实测结论与 ALM 缝合记录）
 ```
 
-**`references/cw-gates.md` 不在包内**：它是与 `code-review-cw` 共用的单一事实源，仓库源为 `../_shared/cw-gates.md`，由 `install.ps1` 在安装时注入。分发本包时须连同 `skills/_shared/` 一起拷贝（脚本缺该文件会 fail-closed 报错）。
+**`references/cw-gates.md` 不在包内**：它是与 `code-review-cw` 共用的单一事实源，仓库源为 `../../kernel/cw-gates.md`，由 `install.ps1` 在安装时注入。分发本包时须连同 `kernel/` 一起拷贝（脚本缺该文件会 fail-closed 报错）。
 
 包外相关件：`../README.md`（ALM 技能地图：各阶段归属、交接契约、已知缺口）。
 

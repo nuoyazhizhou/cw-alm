@@ -30,10 +30,10 @@ Team 型（多角色协作团队，6 成员）
 ~/.workbuddy/skills/test-cw
 ```
 
-每个包内必须有 `references/cw-gates.md`（由安装器从仓库 `skills/_shared/cw-gates.md` 注入，是 G0-G6 门禁的唯一事实源）。安装/更新命令：
+每个包内必须有 `references/cw-gates.md`（由安装器从仓库 `kernel/cw-gates.md` 注入，是 G0-G6 门禁的唯一事实源）。安装/更新命令：
 
 ```bash
-python skills/_shared/install_skill_to_workbuddy.py
+python tools/mount.py --apply
 ```
 
 不内嵌是刻意的：门禁只有一份事实源，避免包内副本随仓库演进漂移。

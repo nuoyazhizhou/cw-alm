@@ -30,7 +30,7 @@ foreach ($t in $Targets) {
             Copy-Item -Force -Recurse -Path $srcAsset -Destination (Join-Path $destDir $asset)
         }
     }
-    # 共享门禁注入：源 skills/_shared/cw-gates.md（与 code-review-cw 共用的单一事实源）
+    # 共享门禁注入：源 kernel/cw-gates.md（与 code-review-cw 共用的单一事实源）
     # 单一源，无降级路径：check_skill_packages.py 的 AC-04 禁止包内 references/cw-gates.md，
     # 故"包内副本"回退在此仓库形态下不可达（PL-01）。留着它只会让人以为可以靠副本兜底。
     $sharedGates = Join-Path $PSScriptRoot '..\..\kernel\cw-gates.md'

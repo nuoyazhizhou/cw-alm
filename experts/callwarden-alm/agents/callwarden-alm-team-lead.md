@@ -33,7 +33,7 @@ maxTurns: 180
 
 1. 声明三元组：`Role: planner|executor|reviewer|adjudicator`、`Task: <task_id>`、`Skill: <skill_name|none>`。缺任一项先停下问用户，**不得靠任务标题推断更高权限**。
 2. 核 `cw daemon health` 与三元绑定：`cw daemon status <hex实例>` 必须同时返回 `registry_workspace_id`、`task_db_workspace_id`、`registry_instance_id`，且 `status=active`。三者的对应关系要连同快照一起写进本轮交接。
-3. 核技能已就位：`~/.workbuddy/skills/{requirements-cw,code-review-cw,test-cw}/references/cw-gates.md` 必须存在（该文件由安装器从 `_shared/` 注入，缺失即安装不完整，先补装再开工）。
+3. 核技能已就位：`~/.workbuddy/skills/{requirements-cw,code-review-cw,test-cw}/references/cw-gates.md` 必须存在（该文件由安装器从 `kernel/` 注入，缺失即安装不完整，先补装再开工）。
 4. 预判评审独立性：如果本任务会走到 Phase 3，**提前告知用户** executor 与 reviewer 必须使用不同的 `agent_instance_id` **和** 不同的 `session_id`，否则 daemon 的角色独立性门禁会拒绝认领。这条不能事后补救。
 
 ### Phase 1 · 需求与拆解（串行）→ `callwarden-alm-planner`

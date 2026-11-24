@@ -25,7 +25,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 
 - **纯审查模式**：无需任何额外配置，装完即用。
 - **建单 + 修复闭环模式**（完整工作流）：需要本机安装并运行 callwarden daemon，且在宿主中注册 callwarden MCP 连接器（工具按名后缀 `task_create` / `get_active_workspace` / `task_next_step` / `task_report_step` 等匹配）。被审查仓库需已 `cw workspace register` 完成绑定。
-- **安装依赖**：门禁文件 `references/cw-gates.md` 由 `install.ps1` 从 `../_shared/cw-gates.md` 注入。分发本包时须连同 `skills/_shared/` 一起拷贝，否则脚本 fail-closed 报错（不会装出一个缺门禁的包）。
+- **安装依赖**：门禁文件 `references/cw-gates.md` 由 `install.ps1` 从 `../../kernel/cw-gates.md` 注入。分发本包时须连同 `kernel/` 一起拷贝，否则脚本 fail-closed 报错（不会装出一个缺门禁的包）。
 
 ## 升级
 

@@ -108,8 +108,7 @@ def parse_frontmatter(text: str) -> dict | None:
 def load_packages(skills_root: Path) -> list[Package]:
     """扫描 ``skills_root`` 的**直接子目录**，凡含 SKILL.md 者即视为一个技能包。
 
-    「含 SKILL.md」是包的唯一判据：``_shared/`` 因无 SKILL.md 自然排除，
-    ``README.md`` 等文件因非目录自然排除——不需要额外的忽略名单。
+    「含 SKILL.md」是包的唯一判据：``README.md`` 等文件因非目录自然排除——不需要额外的忽略名单。
     路径不存在/非目录时返回 ``[]`` 而不抛 FileNotFoundError，由调用方统一
     报「no skill packages found」；真正不可读（权限）时上抛 OSError。
     """

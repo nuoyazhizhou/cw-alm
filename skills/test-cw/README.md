@@ -25,7 +25,7 @@
 powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
-幂等；重启宿主会话后生效。**不写 .gitignore**——证据要随 git 跟踪。分发时须连同 `skills/_shared/` 一起拷贝（缺了脚本 fail-closed 报错）。
+幂等；重启宿主会话后生效。**不写 .gitignore**——证据要随 git 跟踪。分发时须连同 `kernel/` 一起拷贝（缺了脚本 fail-closed 报错）。
 
 ## 前置条件
 
@@ -46,7 +46,7 @@ install.ps1                  三家宿主安装 + AGENTS.md 注入 + 共享门�
 DESIGN.md                    立项稿 v0.5（§15 Rust nodeid 归属；含 backlog-46 试跑 6 处判据修订）
 ```
 
-包外相关件：`../README.md`（ALM 技能地图）、`../_shared/cw-gates.md`（G0-G6 单一事实源）。
+包外相关件：`../README.md`（ALM 技能地图）、`../../kernel/cw-gates.md`（G0-G6 单一事实源）。
 
 ## 试用记录（决定判据形态的那次）
 

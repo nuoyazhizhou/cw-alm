@@ -85,7 +85,7 @@ Line 42: User input is interpolated directly into the query.
 ### 阶段零：门禁自检（Preflight，建单与认领之前必须完成）
 
 1. **MCP 工具集**：`ToolSearch` 必须能查到 callwarden 系工具（按上文「宿主适配注记」的后缀匹配）。连接器已配置但查不到 → 走文末「兜底」，不得改代码、不得假称已建单。
-2. **门禁四件套**：按 `references/cw-gates.md`（安装时注入；仓库源 `../_shared/cw-gates.md`）的 **G1 canonical 绑定 / G2 身份注册 / G3 合同声明 / G4 snapshot** 依次备齐，**缺一即 fail-closed**。该文件与 `requirements-cw` 共用，本 SKILL.md 不再内嵌全文（防两处各写一份漂移）。
+2. **门禁四件套**：按 `references/cw-gates.md`（安装时注入；仓库源 `../../kernel/cw-gates.md`）的 **G1 canonical 绑定 / G2 身份注册 / G3 合同声明 / G4 snapshot** 依次备齐，**缺一即 fail-closed**。该文件与 `requirements-cw` 共用，本 SKILL.md 不再内嵌全文（防两处各写一份漂移）。
 3. **两条最容易踩的**（G1/G2 摘录，全文见上）：① registry 的 `registry_workspace_id` 与建单权威的 `task_db_workspace_id` **不同源**（实锤 registry=175 / task_db=10），拿 `list_workspaces` 猜 id 必 `E_WORKSPACE_PROJECT_MISMATCH`；② `task_next_step` 的 `agent_session_id` 必须与 `identity.session_id` **完全相同**，缺省空值即 `E_IDENTITY_SESSION_MISMATCH`，且 `agent.register` 未暴露为 MCP 工具（走 daemon RPC）。
 
 ### 阶段一之前：图谱驱动选靶（Graph-driven Target Selection）

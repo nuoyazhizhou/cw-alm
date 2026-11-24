@@ -1,7 +1,7 @@
 # callwarden 共享门禁与建单契约（单一事实源）
 
 > **本文件是唯一事实源**：`requirements-cw` 与 `code-review-cw` 共用，两包不得各自内嵌一份。
-> 仓库内路径 `skills/_shared/cw-gates.md`；两个 `install.ps1` 各自注入为安装包的 `references/cw-gates.md`（源码单一、分发独立）。
+> 仓库内路径 `kernel/cw-gates.md`；两个 `install.ps1` 各自注入为安装包的 `references/cw-gates.md`（源码单一、分发独立）。
 > 修改本文件 = 修改两个技能的门禁，须同步验证两包。
 > 内容来源：`code-review-cw` 阶段零 + 阶段三 P1-P4，均为真实仓库 MCP 全链路实测的 fail-closed 结论。
 

@@ -33,7 +33,7 @@ description: 需求分析与拆解专家：把模糊想法经 ≤3 轮澄清、�
 
 ## 0. 门禁自检（R0 之前，一次）
 
-按 `references/cw-gates.md`（安装时注入；仓库源 `../_shared/cw-gates.md`）依次备齐：canonical 工作区对（G1）、注册身份（G2）、合同声明（G3）、snapshot（G4）。**缺一即 fail-closed**，不要跳到 R4 才发现。
+按 `references/cw-gates.md`（安装时注入；仓库源 `../../kernel/cw-gates.md`）依次备齐：canonical 工作区对（G1）、注册身份（G2）、合同声明（G3）、snapshot（G4）。**缺一即 fail-closed**，不要跳到 R4 才发现。
 
 建单格式（G6：title 用符号不用行号 / description 首行 REQ / `check_items` 字符串 / `action` 取值）与 `code-review-cw` 共用同一契约——两端形状不一致会让 task-map、审查报告、验收证据三处对不齐。**下文 R4 的模板是本契约的实例，不是另一份定义。**
 

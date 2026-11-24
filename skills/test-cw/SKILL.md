@@ -30,7 +30,7 @@ description: 验收执行专家：把 ac-map 里的每条 AC 变成可审计证�
 
 ## 0. 门禁自检（只做一次）
 
-按 `references/cw-gates.md`（安装时注入；仓库源 `../_shared/cw-gates.md`）：**G1** canonical 工作区对、**G2** 注册身份、**G6** 建单格式契约。
+按 `references/cw-gates.md`（安装时注入；仓库源 `../../kernel/cw-gates.md`）：**G1** canonical 工作区对、**G2** 注册身份、**G6** 建单格式契约。
 本技能不认领/不 apply，故不需要 G3 合同声明；只在**建单**时用 G1 + G2。
 工具不可用 → 按文末「兜底」，只产证据不建单，并如实声明。
 
