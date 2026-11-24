@@ -1,0 +1,115 @@
+{
+  "name": "callwarden-alm",
+  "version": "1.0.0",
+  "description": "A governed ALM delivery team for Call Warden: requirement breakdown, call-graph-driven review, acceptance evidence, and daemon-backed task governance.",
+  "agents": [
+    "./agents/callwarden-alm-team-lead.md",
+    "./agents/callwarden-alm-planner.md",
+    "./agents/callwarden-alm-executor.md",
+    "./agents/callwarden-alm-reviewer.md",
+    "./agents/callwarden-alm-tester.md",
+    "./agents/callwarden-alm-adjudicator.md"
+  ],
+
+  "expertType": "team",
+  "agentName": "callwarden-alm-team-lead",
+  "teamInfo": {
+    "leadAgent": "callwarden-alm-team-lead",
+    "memberAgents": [
+      "callwarden-alm-planner",
+      "callwarden-alm-executor",
+      "callwarden-alm-reviewer",
+      "callwarden-alm-tester",
+      "callwarden-alm-adjudicator"
+    ]
+  },
+
+  "displayName": {
+    "en": "Call Warden ALM Delivery Team",
+    "zh": "Call Warden ALM 治理交付团"
+  },
+  "profession": {
+    "en": "Call Warden ALM Delivery Team",
+    "zh": "Call Warden ALM 治理交付团"
+  },
+  "displayDescription": {
+    "en": "Turns requirement clarification, call-graph-driven review, acceptance evidence and daemon task governance into one auditable delivery chain with four mutually-checking roles.",
+    "zh": "覆盖需求拆解、调用图选靶审查、验收取证与任务治理，四角色互相制衡，全程可追溯可审计。"
+  },
+  "avatar": "avatars/team.png",
+  "categoryId": "02-Engineering",
+  "defaultInitPrompt": {
+    "zh": "我要给 callwarden 加一个新功能：先做需求澄清和任务拆解，再实现、独立评审、验收取证，最后按 daemon 治理关单。",
+    "en": "I want to add a new feature to callwarden: clarify and break down the requirement, then implement, independently review, capture acceptance evidence, and close it under daemon governance."
+  },
+  "plugin": "callwarden-alm",
+  "tags": [
+    { "en": "ALM Traceability", "zh": "需求追溯" },
+    { "en": "Task Governance", "zh": "任务治理" },
+    { "en": "Acceptance Evidence", "zh": "验收取证" }
+  ],
+  "quickPrompts": [
+    {
+      "zh": "我要给 callwarden 加一个新功能：先做需求澄清和任务拆解，再实现、独立评审、验收取证，最后按 daemon 治理关单。",
+      "en": "I want to add a new feature to callwarden: clarify and break down the requirement, then implement, independently review, capture acceptance evidence, and close it under daemon governance."
+    },
+    {
+      "zh": "审查 callwarden 最近的改动：用调用图选靶，输出分级报告，并把要动作的发现建成任务单。",
+      "en": "Review the recent callwarden changes: pick targets from the call graph, output a graded report, and file every actionable finding as a task."
+    },
+    {
+      "zh": "对某个 AC 跑验收：选最小充分测试集，按六条件判定，补齐八段证据。",
+      "en": "Run acceptance for one AC: choose the minimal sufficient test set, judge by the six conditions, and complete the eight-section evidence."
+    }
+  ],
+  "members": [
+    {
+      "id": "callwarden-alm-team-lead",
+      "name": { "en": "Zhong", "zh": "钟守一" },
+      "displayName": { "en": "Zhong", "zh": "钟守一" },
+      "profession": { "en": "Delivery Governance Director", "zh": "交付治理总监" },
+      "avatar": "avatars/callwarden-alm-team-lead.png",
+      "role": "lead"
+    },
+    {
+      "id": "callwarden-alm-planner",
+      "name": { "en": "Lan", "zh": "蓝图远" },
+      "displayName": { "en": "Lan", "zh": "蓝图远" },
+      "profession": { "en": "Task Architect", "zh": "任务架构师" },
+      "avatar": "avatars/callwarden-alm-planner.png",
+      "role": "member"
+    },
+    {
+      "id": "callwarden-alm-executor",
+      "name": { "en": "Zheng", "zh": "郑兑现" },
+      "displayName": { "en": "Zheng", "zh": "郑兑现" },
+      "profession": { "en": "Senior Implementation Engineer", "zh": "高级实现工程师" },
+      "avatar": "avatars/callwarden-alm-executor.png",
+      "role": "member"
+    },
+    {
+      "id": "callwarden-alm-reviewer",
+      "name": { "en": "Ke", "zh": "柯明察" },
+      "displayName": { "en": "Ke", "zh": "柯明察" },
+      "profession": { "en": "Independent Reviewer", "zh": "独立评审官" },
+      "avatar": "avatars/callwarden-alm-reviewer.png",
+      "role": "member"
+    },
+    {
+      "id": "callwarden-alm-tester",
+      "name": { "en": "Ji", "zh": "纪有据" },
+      "displayName": { "en": "Ji", "zh": "纪有据" },
+      "profession": { "en": "Acceptance Evidence Engineer", "zh": "验收取证工程师" },
+      "avatar": "avatars/callwarden-alm-tester.png",
+      "role": "member"
+    },
+    {
+      "id": "callwarden-alm-adjudicator",
+      "name": { "en": "Pei", "zh": "裴定论" },
+      "displayName": { "en": "Pei", "zh": "裴定论" },
+      "profession": { "en": "Governance Adjudicator", "zh": "治理裁决官" },
+      "avatar": "avatars/callwarden-alm-adjudicator.png",
+      "role": "member"
+    }
+  ]
+}
