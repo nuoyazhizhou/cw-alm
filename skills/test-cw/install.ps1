@@ -42,35 +42,30 @@ foreach ($t in $Targets) {
     Copy-Item -Force -Path $sharedGates -Destination (Join-Path $destRef 'cw-gates.md')
     $installed += $destDir
 
-    # AGENTS.md 常驻注入（仅 Codex）：按 description 自动触发 + 全局指令兜底。
+    # AGENTS.md 常驻注入（仅 Codex）：正文读仓根单一源，与 mount.py 共用。
     if ($t.Agents) {
+        $snippet = Join-Path $PSScriptRoot "..\..\references\agents-md-snippet-$SkillName.md"
+        if (-not (Test-Path $snippet)) { throw "找不到 AGENTS.md 注入单一源：$snippet" }
+        $section = (Get-Content -Path $snippet -Raw -Encoding UTF8).TrimEnd("`r", "`n")
+        $begin = "<!-- ${SkillName}:begin -->"
+        $end = "<!-- ${SkillName}:end -->"
+        if (-not ($section.StartsWith($begin) -and $section.EndsWith($end))) {
+            throw "注入源 marker 不完整（须 begin 开头 / end 结尾）：$snippet"
+        }
         $agentsMd = Join-Path $t.Home 'AGENTS.md'
-        $begin = '<!-- test-cw:begin -->'
-        $end = '<!-- test-cw:end -->'
-        $section = @"
-$begin
-## 测试验收工作流（test-cw 技能）
-
-- 遇到"跑测试 / 验收 AC / 回填证据 / 执行 test-plan"类请求，使用 ``test-cw`` 技能（位于 ``~/.codex/skills/$SkillName/``，先读其 SKILL.md 再行动）：读 ``ac-map.md`` → 三源反查选最小充分测试集 → 本地批跑并留 junit → 六条件判据 → 写 ``evidence/<AC-id>.md`` → 缺口与失败按 REQ 建单。
-- 判据不许只看 ``rc=0``：required nodeid 必须全 passed、required 集 skip/xfail 必须为 0、``collected`` 必须等于 required 数。
-- ``N/A`` 只在 ``test-plan.md`` 执行前标 ``level=manual`` 时合法；``GAP``（可自动化但无测试）判 FAIL 并建 P1 单。
-- 不写测试、不修代码、不 retry 刷绿、不改断言让红变绿；不执行 apply/close。
-- 证据骨架必须由 junit 解析生成，禁止手抄 nodeid 表。已有代码审查交 ``code-review-cw``，需求拆解交 ``requirements-cw``。
-$end
-"@
         if (Test-Path $agentsMd) {
-            $content = Get-Content $agentsMd -Raw
-            if ($content -match [regex]::Escape($begin)) {
-                # 幂等替换已有段
-                $pattern = "(?s)" + [regex]::Escape($begin) + ".*?" + [regex]::Escape($end)
-                $content = $content -replace $pattern, $section
-                Set-Content -Path $agentsMd -Value $content -NoNewline
+            $content = Get-Content $agentsMd -Raw -Encoding UTF8
+            $startIdx = $content.IndexOf($begin)
+            $endIdx = if ($startIdx -ge 0) { $content.IndexOf($end, $startIdx) } else { -1 }
+            if ($startIdx -ge 0 -and $endIdx -gt $startIdx) {
+                $content = $content.Substring(0, $startIdx) + $section + $content.Substring($endIdx + $end.Length)
             } else {
-                Add-Content -Path $agentsMd -Value "`n$section"
+                $content = $content.TrimEnd("`r", "`n") + "`n`n" + $section + "`n"
             }
         } else {
-            Set-Content -Path $agentsMd -Value $section
+            $content = $section + "`n"
         }
+        Set-Content -Path $agentsMd -Value $content -NoNewline -Encoding UTF8
     }
 }
 

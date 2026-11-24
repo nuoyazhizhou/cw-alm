@@ -40,6 +40,12 @@ WB_SKILLS = WB_HOME / "skills"
 WB_MARKET = WB_HOME / "plugins" / "marketplaces" / "my-experts" / "plugins"
 WB_CACHE = WB_HOME / "plugins" / "cache" / "my-experts"
 
+# Codex 的 AGENTS.md 注入段也收敛到仓根同一份单一源：
+# 以前三个 install.ps1 各存一份正文，改了技能却忘了改常驻指令是常态。
+CODEX_HOME = Path.home() / ".codex"
+CODEX_AGENTS = CODEX_HOME / "AGENTS.md"
+SNIPPETS = REPO_ROOT / "references"
+
 PACKAGES = ("requirements-cw", "code-review-cw", "test-cw")
 ASSET_DIRS = ("references", "scripts", "assets")
 EXTRA_FILES = ("README.md",)
@@ -144,6 +150,71 @@ def apply(plan: dict[str, Path], dest: Path) -> int:
     return len(plan)
 
 
+def snippet_text(pkg: str) -> str:
+    """读一个 AGENTS.md 注入段的单一源；marker 必须成对且包住整段。
+
+    正文里不再有 PowerShell 的双反引号转义——那是为了喂 here-string 才存在的，
+    存成普通 Markdown 后由 install.ps1 与 mount.py 各自原样使用。
+    """
+    path = SNIPPETS / f"agents-md-snippet-{pkg}.md"
+    if not path.is_file():
+        raise OSError(f"找不到注入单一源：{path}")
+    text = path.read_text(encoding="utf-8-sig").rstrip("\r\n")
+    begin, end = f"<!-- {pkg}:begin -->", f"<!-- {pkg}:end -->"
+    if not (text.startswith(begin) and text.endswith(end)):
+        raise ValueError(f"注入源 marker 不完整（须 begin 开头 / end 结尾）：{path}")
+    return text
+
+
+def _read_text_any(path: Path) -> str:
+    """兼容历史编码：现有 Codex AGENTS.md 由 PowerShell 默认编码写成 GBK。
+
+    读回来后统一以 UTF-8 写回，之后 install.ps1 与 mount.py 都显式指定 UTF8，
+    不再依赖宿主默认编码——静默用错编码会把中文指令写成乱码。
+    """
+    for encoding in ("utf-8-sig", "gbk"):
+        try:
+            return path.read_text(encoding=encoding)
+        except UnicodeDecodeError:
+            continue
+    raise OSError(f"无法解码 {path}（已试 utf-8 / gbk）")
+
+
+def agents_diff(dest: Path = CODEX_AGENTS) -> list[str]:
+    """比对 Codex AGENTS.md 的三个注入段与仓内单一源。"""
+    problems: list[str] = []
+    content = _read_text_any(dest) if dest.is_file() else ""
+    for pkg in PACKAGES:
+        section = snippet_text(pkg)
+        begin, end = f"<!-- {pkg}:begin -->", f"<!-- {pkg}:end -->"
+        start = content.find(begin)
+        stop = content.find(end, start + 1) if start >= 0 else -1
+        if start < 0:
+            problems.append(f"缺失注入段 {pkg}")
+        elif stop < 0:
+            problems.append(f"注入段未闭合 {pkg}")
+        elif content[start : stop + len(end)] != section:
+            problems.append(f"注入段内容不同 {pkg}")
+    return problems
+
+
+def agents_apply(dest: Path = CODEX_AGENTS) -> int:
+    """幂等写入三个注入段；marker 之外的用户内容原样保留。返回写入段数。"""
+    content = _read_text_any(dest) if dest.is_file() else ""
+    for pkg in PACKAGES:
+        section = snippet_text(pkg)
+        begin, end = f"<!-- {pkg}:begin -->", f"<!-- {pkg}:end -->"
+        start = content.find(begin)
+        stop = content.find(end, start + 1) if start >= 0 else -1
+        if start >= 0 and stop >= 0:
+            content = content[:start] + section + content[stop + len(end) :]
+        else:
+            content = content.rstrip() + "\n\n" + section + "\n"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(content, encoding="utf-8")
+    return len(PACKAGES)
+
+
 def targets(host: str) -> list[tuple[str, Path, dict[str, Path]]]:
     """组装 (标签, 落点, 计划) 三元组。host 取 all/skills/expert。"""
     out: list[tuple[str, Path, dict[str, Path]]] = []
@@ -164,7 +235,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="挂载技能包与专家团到 WorkBuddy，并检出轨")
     parser.add_argument("--check", action="store_true", help="只比对不落盘（默认行为）")
     parser.add_argument("--apply", action="store_true", help="写入落点")
-    parser.add_argument("--host", default="all", choices=("all", "skills", "expert"), help="只处理某类目标")
+    parser.add_argument(
+        "--host",
+        default="all",
+        choices=("all", "skills", "expert", "codex"),
+        help="只处理某类目标（codex=AGENTS.md 注入段）",
+    )
     parser.add_argument(
         "--check-source",
         action="store_true",
@@ -184,6 +260,9 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_VIOLATION
     if args.host in ("all", "expert") and not EXPERT_ROOT.is_dir():
         print(f"失败：找不到专家团 {EXPERT_ROOT}", file=sys.stderr)
+        return EXIT_VIOLATION
+    if args.host in ("all", "codex") and not SNIPPETS.is_dir():
+        print(f"失败：找不到 AGENTS.md 注入单一源 {SNIPPETS}", file=sys.stderr)
         return EXIT_VIOLATION
 
     if args.check_source:
@@ -205,6 +284,26 @@ def main(argv: list[str] | None = None) -> int:
 
     results = []
     drifted = 0
+    if args.host in ("all", "codex"):
+        try:
+            problems = agents_diff()
+        except (OSError, ValueError) as exc:
+            print(f"失败：{exc}", file=sys.stderr)
+            return EXIT_VIOLATION
+        drifted += bool(problems)
+        results.append(
+            {
+                "target": "codex/AGENTS.md",
+                "path": str(CODEX_AGENTS),
+                "files": len(PACKAGES),
+                "ok": not problems,
+                "problems": problems,
+            }
+        )
+        if args.apply:
+            written = agents_apply()
+            print(f"APPLY {'codex/AGENTS.md':<46} sections={written}")
+
     for label, dest, plan in targets(args.host):
         problems = diff(plan, dest)
         drifted += bool(problems)

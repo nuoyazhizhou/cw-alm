@@ -42,35 +42,31 @@ foreach ($t in $Targets) {
     Copy-Item -Force -Path $sharedGates -Destination (Join-Path $destRef 'cw-gates.md')
     $installed += $destDir
 
-    # AGENTS.md 常驻注入（仅 Codex）：按 description 自动触发 + 全局指令兜底。
+    # AGENTS.md 常驻注入（仅 Codex）：正文读仓根单一源，与 mount.py 共用。
     if ($t.Agents) {
+        $snippet = Join-Path $PSScriptRoot "..\..\references\agents-md-snippet-$SkillName.md"
+        if (-not (Test-Path $snippet)) { throw "找不到 AGENTS.md 注入单一源：$snippet" }
+        $section = (Get-Content -Path $snippet -Raw -Encoding UTF8).TrimEnd("`r", "`n")
+        $begin = "<!-- ${SkillName}:begin -->"
+        $end = "<!-- ${SkillName}:end -->"
+        if (-not ($section.StartsWith($begin) -and $section.EndsWith($end))) {
+            throw "注入源 marker 不完整（须 begin 开头 / end 结尾）：$snippet"
+        }
         $agentsMd = Join-Path $t.Home 'AGENTS.md'
-        $begin = '<!-- requirements-cw:begin -->'
-        $end = '<!-- requirements-cw:end -->'
-        $section = @"
-$begin
-## 需求分析与拆解工作流（requirements-cw 技能）
-
-- 模糊需求、新功能、新项目、技术选型、需求拆解类请求，使用 ``requirements-cw`` 技能（位于 ``~/.codex/skills/$SkillName/``，先读其 SKILL.md 再行动）：R0 澄清 ≤3 轮 → （新项目）技术栈选型门禁 → 可视化 → 符号锚定 → contract 卡片 + 设计门禁 + 基线冻结 → 注入 callwarden 任务单 → 开发 → 收口与 feature 级验收。
-- 每个评审门禁必须产出四件套（方案对比 ≥2 / 被否决理由 / 异常场景矩阵 8 类 / 未决项三态），hotfix 豁免须满足单文件 + 无新增符号 + 已有测试覆盖三条。
-- 追溯主线：REQ 编号 → 卡片 → task_id → AC → 证据（``.design/<feature>/evidence/``）。证据缺失即验收不通过。
-- 已有代码的审查交给 ``code-review-cw``，不要用本技能。
-- callwarden MCP 不可用时，只做 R0-R3 出方案并如实声明"未建单、未验收"，不得假称已建单或已闭环。
-$end
-"@
         if (Test-Path $agentsMd) {
-            $content = Get-Content $agentsMd -Raw
-            if ($content -match [regex]::Escape($begin)) {
-                # 幂等替换已有段
-                $pattern = "(?s)" + [regex]::Escape($begin) + ".*?" + [regex]::Escape($end)
-                $content = $content -replace $pattern, $section
-                Set-Content -Path $agentsMd -Value $content -NoNewline
+            $content = Get-Content $agentsMd -Raw -Encoding UTF8
+            $startIdx = $content.IndexOf($begin)
+            $endIdx = if ($startIdx -ge 0) { $content.IndexOf($end, $startIdx) } else { -1 }
+            if ($startIdx -ge 0 -and $endIdx -gt $startIdx) {
+                # 字符串切片替换：避开 -replace 对替换串里 $ 与 \ 的解释
+                $content = $content.Substring(0, $startIdx) + $section + $content.Substring($endIdx + $end.Length)
             } else {
-                Add-Content -Path $agentsMd -Value "`n$section"
+                $content = $content.TrimEnd("`r", "`n") + "`n`n" + $section + "`n"
             }
         } else {
-            Set-Content -Path $agentsMd -Value $section
+            $content = $section + "`n"
         }
+        Set-Content -Path $agentsMd -Value $content -NoNewline -Encoding UTF8
     }
 }
 
