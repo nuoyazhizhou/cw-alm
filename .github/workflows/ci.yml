@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # 不用 3.14：semgrep 等门禁依赖在该版本无 wheel，曾在 Windows 上致 Gate 从未执行。
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Unit tests
+        # 20 例 hermetic 守卫；依赖相邻 callwarden 仓的 smoke 用例会自动 skip。
+        # check_packages.py 的整包检查需要那个相邻仓，故留作本地门禁，CI 以单测 + 源校验为准。
+        run: python -m pytest tests/ -q
+
+      - name: Source integrity
+        # CI 没有 ~/.workbuddy 落点，--check 会全报缺失；--check-source 只验证仓内可合成。
+        run: python tools/mount.py --check-source

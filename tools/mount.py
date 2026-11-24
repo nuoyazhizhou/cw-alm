@@ -165,6 +165,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--check", action="store_true", help="只比对不落盘（默认行为）")
     parser.add_argument("--apply", action="store_true", help="写入落点")
     parser.add_argument("--host", default="all", choices=("all", "skills", "expert"), help="只处理某类目标")
+    parser.add_argument(
+        "--check-source",
+        action="store_true",
+        help="只校验仓内源可合成（不依赖宿主落点，CI 用）",
+    )
     parser.add_argument("--json", action="store_true", help="输出 JSON（CI 解析用）")
     try:
         args = parser.parse_args(argv)
@@ -180,6 +185,23 @@ def main(argv: list[str] | None = None) -> int:
     if args.host in ("all", "expert") and not EXPERT_ROOT.is_dir():
         print(f"失败：找不到专家团 {EXPERT_ROOT}", file=sys.stderr)
         return EXIT_VIOLATION
+
+    if args.check_source:
+        # CI 上没有 ~/.workbuddy 落点，--check 会全报缺失；这里只验证「仓内源能合成出
+        # 完整包」，覆盖门禁文件、技能包与专家团声明的完整性，不产生假红。
+        try:
+            plans = {pkg: _skill_plan(pkg) for pkg in PACKAGES}
+            plans[EXPERT_NAME] = _expert_plan()
+        except (OSError, ValueError) as exc:
+            print(f"失败：{exc}", file=sys.stderr)
+            return EXIT_VIOLATION
+        for name, plan in plans.items():
+            missing = [rel for rel, src in plan.items() if not src.is_file()]
+            if missing:
+                print(f"失败：{name} 源文件不存在：{', '.join(missing)}", file=sys.stderr)
+                return EXIT_VIOLATION
+            print(f"SOURCE OK {name:<24} files={len(plan)}")
+        return EXIT_OK
 
     results = []
     drifted = 0
