@@ -24,7 +24,7 @@ jobs:
         run: python -m pip install --upgrade pip pytest
 
       - name: Unit tests
-        # 20 例 hermetic 守卫；依赖相邻 callwarden 仓的 smoke 用例会自动 skip。
+        # 30 例 hermetic 守卫；依赖相邻 callwarden 仓的 smoke 用例会自动 skip。
         # check_packages.py 的整包检查需要那个相邻仓，故留作本地门禁，CI 以单测 + 源校验为准。
         run: python -m pytest tests/ -q
 

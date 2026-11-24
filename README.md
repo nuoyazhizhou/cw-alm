@@ -21,6 +21,7 @@ cw-alm/
 │   ├── code-review-cw/         审查端（图谱选靶→只读审查→建单，PASS/BLOCKED）
 │   └── test-cw/                验收端（六条件判据 + 八段证据 + 冻结冒烟集）
 ├── experts/callwarden-alm/     WorkBuddy 专家团：6 人格 + plugin.json + 头像
+├── references/                 AGENTS.md 注入段单一源（3 个 snippet，两边共读）
 ├── tools/
 │   ├── check_packages.py       结构自检（frontmatter / references / 门禁单一源 / smoke / 注入）
 │   └── mount.py                挂载与漂移检测（--check / --apply）
@@ -46,19 +47,26 @@ cw-alm/
 |---|---|---|
 | WorkBuddy 技能 | `~/.workbuddy/skills/<pkg>/` | `python tools/mount.py --apply --host skills` |
 | WorkBuddy 专家团 | `~/.workbuddy/plugins/marketplaces/my-experts/plugins/callwarden-alm/` + `plugins/cache/my-experts/callwarden-alm/<ver>/` | `python tools/mount.py --apply --host expert` |
-| OpenAI Codex | `~/.codex/skills/<pkg>/` + `~/.codex/AGENTS.md` 注入段 | `powershell -File skills/<pkg>/install.ps1` |
-| Claude Code | `~/.claude/skills/<pkg>/` | 同上 |
+| OpenAI Codex | `~/.codex/skills/<pkg>/`（技能本体）+ `~/.codex/AGENTS.md` 注入段 | `powershell -File skills/<pkg>/install.ps1` / `python tools/mount.py --apply --host codex` |
+| Claude Code | `~/.claude/skills/<pkg>/` | `powershell -File skills/<pkg>/install.ps1` |
 | Trae CN | `~/.trae-cn/skills/<pkg>/`（目录存在才装） | 同上 |
 
 专家团必须**两处都写**：应用实际加载的是 `cache/` 副本，只写 `marketplaces/` 不生效。
 `mount.py` 已按 `plugin.json` 的 version 自动算出 cache 目录名。
 
+`~/.codex/AGENTS.md` 里三段常驻指令的正文只存在 `references/agents-md-snippet-<pkg>.md`，
+`install.ps1` 和 `mount.py --host codex` 都读它，不再各存一份。这个收敛修掉了一个真实缺陷：
+旧 `install.ps1` 的 code-review 正文用单反引号，被 PowerShell here-string 吃掉，
+落到 AGENTS.md 后 Markdown 代码标记全丢；另外两段用双反引号才侥幸写对。
+另外，历史 AGENTS.md 是 PowerShell 默认编码写出的 GBK，`mount.py` 兼容读取并统一写回 UTF-8。
+
 ## 校验
 
 ```bash
-python tools/check_packages.py          # 结构自检，三态 0/2/64
-python -m pytest tests/ -q              # 20 例守卫单测
-python tools/mount.py --check           # 漂移检测，0=一致 2=漂移 64=用法错
+python tools/check_packages.py          # 结构自检，三态 0/2/64（需相邻 callwarden 仓）
+python -m pytest tests/ -q              # 30 例守卫单测（CI 上 smoke 相关 2 例自动 skip）
+python tools/mount.py --check           # 漂移检测（含 codex/AGENTS.md），0=一致 2=漂移 64=用法错
+python tools/mount.py --check-source    # 只校验仓内可合成，不依赖宿主落点（CI 用）
 python tools/mount.py --check --json    # CI 解析用
 ```
 
@@ -81,9 +89,9 @@ python <expert-manager>/scripts/validate_expert.py \
 
 ## 已知债务
 
-1. **两个挂载入口**：`mount.py` 管 WorkBuddy，`install.ps1` 管另外三个宿主。宿主集合互不重叠，
-   所以内容仍是单一源；但收敛成一个入口更好——届时把各包 `install.ps1` 里的 AGENTS.md 注入段
-   抽成 `references/agents-md-snippet.md`，两边都读它。
+1. **两个挂载入口共存（已收敛内容，未合并脚本）**：`mount.py` 管 WorkBuddy 与 Codex 的
+   AGENTS.md 注入段；`install.ps1` 管 Codex/Claude/Trae 的技能本体拷贝。宿主集合有重叠但
+   正文已收敛到 `references/agents-md-snippet-<pkg>.md`，两边读同一份，不会再各写一份。
 2. **专家包版本号停在 1.0.0**：没有安装/更新脚本驱动真实升级，只改 `plugin.json` 版本号会
    制造「市场注册表 vs 包」的静默不一致。
 3. **设计溯源留在 callwarden 仓** `.design/skillpkg-guard/` 与 `.design/parking-lot.md`：
